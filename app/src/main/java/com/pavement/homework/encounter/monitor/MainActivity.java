@@ -2,16 +2,23 @@ package com.pavement.homework.encounter.monitor;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,7 +41,22 @@ public class MainActivity extends AppCompatActivity {
         bt = (EditText)findViewById(R.id.btName);
         user = (EditText)findViewById(R.id.userName);
 
-        // Bluetooth Adapter 얻기 ========================//
+        String filename = "myfile";
+        String string = "Hello world!";
+        FileOutputStream outputStream;
+
+        try {
+            Log.i("TEST", getFilesDir().toString() );
+            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+            Log.i("TEST", getFileStreamPath("myfile").toString() );
+            outputStream.write(string.getBytes());
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+            // Bluetooth Adapter 얻기 ========================//
         // 1. BluetoothManager 통해서
         //mBTManager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
         //mBTAdapter = mBTManager.getAdapter(); // project 생성시 Minimum SDK 설정에서 API level 18 이상으로 선택해야
