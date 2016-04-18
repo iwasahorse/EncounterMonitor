@@ -64,8 +64,9 @@
         android:id="@+id/logText"/>
 
     <ListView
+        android:fadeScrollbars="false"
         android:id="@+id/list_view_encounters"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4"/>
+        android:layout_weight="5"/>
 </LinearLayout>

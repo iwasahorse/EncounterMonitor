@@ -2,10 +2,13 @@ package com.pavement.homework.encounter.monitor;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,7 +26,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+    static final public String UI_UPDATE = "com.pavement.homework.encounter.monitor.ui.update";
+    static final public String UI_UPDATE_CONTENT = "com.pavement.homework.encounter.monitor.ui.update.content";
 
+    BroadcastReceiver receiver;
     BluetoothAdapter mBTAdapter;
     static final int REQUEST_ENABLE_BT = 1;
     static final int REQUEST_ENABLE_DISCOVER = 2;
@@ -43,28 +49,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Service 로부터 Encounter Monitoring 에 관한 정보를 수신받아 ListView 에 적용
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String stringEncounter = intent.getStringExtra(UI_UPDATE_CONTENT);
+                adapterEncounters.add(stringEncounter);
+                adapterEncounters.notifyDataSetChanged();
+            }
+
+
+        };
+
         listViewEncounters = (ListView) findViewById(R.id.list_view_encounters);
         logText = (TextView)findViewById(R.id.logText);
         bt = (EditText)findViewById(R.id.btName);
         user = (EditText)findViewById(R.id.userName);
 
+        //ListView 에 ArrayAdapter 설정
         listEncounters = new ArrayList<>();
         adapterEncounters = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, listEncounters);
-
-        String filename = "myfile";
-        String string = "Hello world!";
-        FileOutputStream outputStream;
-
-        try {
-            Log.i("TEST", getFilesDir().toString() );
-            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
-            Log.i("TEST", getFileStreamPath("myfile").toString() );
-            outputStream.write(string.getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        listViewEncounters.setAdapter(adapterEncounters);
 
 
             // Bluetooth Adapter 얻기 ========================//
@@ -105,6 +111,21 @@ public class MainActivity extends AppCompatActivity {
                 // 스캔을 하거나 연결을 할 수 있음
             }
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter(UI_UPDATE)
+        );
+    }
+
+    @Override
+    protected void onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        super.onStop();
     }
 
     @Override

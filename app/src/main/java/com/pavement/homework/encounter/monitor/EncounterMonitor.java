@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,6 +24,11 @@ import java.util.concurrent.TimeUnit;
 
 public class EncounterMonitor extends Service {
     private static final String TAG = "EncounterMonitor";
+    static final public String UI_UPDATE = "com.pavement.homework.encounter.monitor.ui.update";
+    static final public String UI_UPDATE_CONTENT = "com.pavement.homework.encounter.monitor.ui.update.content";
+
+    LocalBroadcastManager broadcastManager;
+    Intent intentUI;
 
     PowerManager.WakeLock wakeLock;
     BluetoothAdapter mBTAdapter;
@@ -63,14 +69,20 @@ public class EncounterMonitor extends Service {
                         isEncountering = false;
 
                         lostDate = new Date();
-                        output = formatter.format(foundDate);
+                        output = formatter.format(lostDate);
                         Log.i("TEST", "Encounter 종료 시점: " + output);  //Encounter 종료 시점
+
 
                         //Encounter 시작 시점과 종료 시점 간의 시간차를 분으로 환산
                         differences = lostDate.getTime() - foundDate.getTime() ;
                         long minutes = TimeUnit.MILLISECONDS.toMinutes(differences);
                         Log.d(TAG, lostDate.getTime() + " " + foundDate.getTime() );
                         Log.d(TAG, "지속시간: " + minutes + " 분");
+                        String message = formatter.format(foundDate) + " (" + minutes + "분)";
+
+                        //Encounter 에 관한 정보를 액티비티로 전달하기 위한 방송
+                        intentUI.putExtra(UI_UPDATE_CONTENT, message);
+                        broadcastManager.sendBroadcast(intentUI);
 
                         //
                         lostDate = null;
@@ -95,7 +107,9 @@ public class EncounterMonitor extends Service {
                         if(foundDate == null) {
                             foundDate = new Date();
                             output = formatter.format(foundDate);
-                            Log.i("TEST", "Encounter 시작 시점 " + output);  //Encounter 시작 시점
+                            Log.i("TEST", "Encounter 시작 시점 " + output);  //Encounter 시작 시점String message = formatter.format(foundDate) + " (" + minutes + "분)";
+
+
                         }
 
                                 vib.vibrate(200);
@@ -116,6 +130,9 @@ public class EncounterMonitor extends Service {
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate()");
+
+        broadcastManager = LocalBroadcastManager.getInstance(EncounterMonitor.this);
+        intentUI = new Intent(UI_UPDATE);
 
         //서비스가 실행중인 동안 CPU 를 항상 켜놓도록 WakeLock 을 설정한다.
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -183,6 +200,9 @@ public class EncounterMonitor extends Service {
         Date startDate = new Date();
         output = formatter.format(startDate);
         Log.i("TEST", output);  //모니터링 시작 시간
+        //모니터링 시작 시간을 액티비티로 전달하기 위한 방송
+        intentUI.putExtra(UI_UPDATE_CONTENT, "모니터링 시작: " + output);
+        broadcastManager.sendBroadcast(intentUI);
 
         // TimerTask 생성한다
         timerTask = new TimerTask() {
@@ -210,6 +230,9 @@ public class EncounterMonitor extends Service {
         Date stopDate = new Date();
         output = formatter.format(stopDate);
         Log.i("TEST", output);  //모니터링 종료 시간
+        // 모니터링 종료 시간을 액티비티로 전달하기 위한 방송
+        intentUI.putExtra(UI_UPDATE_CONTENT, "모니터링 종료: " + output);
+        broadcastManager.sendBroadcast(intentUI);
 
         // 1. 모든 태스크를 중단한다
         if(timerTask != null) {
