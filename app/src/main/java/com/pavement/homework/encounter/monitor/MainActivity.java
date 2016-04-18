@@ -9,27 +9,33 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
     BluetoothAdapter mBTAdapter;
     static final int REQUEST_ENABLE_BT = 1;
     static final int REQUEST_ENABLE_DISCOVER = 2;
+    ListView listViewEncounters;
+    ArrayList<String> listEncounters;
+    ArrayAdapter<String> adapterEncounters;
     TextView logText;
     String btName;
     String userName;
     EditText bt;
     EditText user;
+    boolean registered = false;
 
 
     @Override
@@ -37,9 +43,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        listViewEncounters = (ListView) findViewById(R.id.list_view_encounters);
         logText = (TextView)findViewById(R.id.logText);
         bt = (EditText)findViewById(R.id.btName);
         user = (EditText)findViewById(R.id.userName);
+
+        listEncounters = new ArrayList<>();
+        adapterEncounters = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, listEncounters);
 
         String filename = "myfile";
         String string = "Hello world!";
@@ -68,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         if(mBTAdapter == null) {
             // 블루투스 지원하지 않기 때문에 블루투스를 이용할 수 없음
             // alert 메세지를 표시하고 사용자 확인 후 종료하도록 함
-            // AlertDialog.Builder 이용, set method에 대한 chaining call 가능
+            // AlertDialog.Builder 이용, set method 에 대한 chaining call 가능
             new AlertDialog.Builder(this)
                     .setTitle("Not compatible")
                     .setMessage("Your device does not support Bluetooth")
@@ -112,28 +123,43 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_ENABLE_DISCOVER:
                 if(responseCode == RESULT_CANCELED) {
                     // 사용자가 DISCOVERABLE 허용하지 않음
-                    Toast.makeText(this, "사용자가 discoverable을 허용하지 않았습니다.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "사용자가 discoverable 을 허용하지 않았습니다.", Toast.LENGTH_SHORT).show();
                 }
         }
     }
 
     public void onClick(View view) {
         if(view.getId() == R.id.regiBtn) {
-            Toast.makeText(this, "BT 디바이스와 사용자 이름 등록!!", Toast.LENGTH_LONG).show();
-            // EditText에 입력된 디바이스와 사용자 이름을 String 변수에 담음
+            // EditText 에 입력된 디바이스와 사용자 이름을 String 변수에 담음
+
             btName = bt.getText().toString();
             userName = user.getText().toString();
 
+            if(btName.equals("") && userName.equals("")) {
+                Toast.makeText(this, "장치명 또는 사용자명이 정상적으로 입력되지 않았습니다.", Toast.LENGTH_LONG).show();
+                registered = false;
+            }
+            else {
+                Toast.makeText(this, "장치명과 사용자명이 정상적으로 등록되었습니다.", Toast.LENGTH_LONG).show();
+                registered = true;
+            }
+
         } else if(view.getId() == R.id.startMonitorBtn) {
             // 등록된 BT 디바이스 이름을 주기적으로 검색하여 등록된 사용자와 encounter 모니터를 시작한다
-            // 모니터를 수행하는 것은 Service로 구현
-            // Service를 EncounterMonitor라는 이름의 클래스로 구현하고 startService로 이 Service를 시작
-            // 위에서 모니터링 등록을 한 BT 디바이스 이름을 intent에 담아서 전달
-            Intent intent = new Intent(this, EncounterMonitor.class);
-            intent.putExtra("BTName", btName);
-            intent.putExtra("UserName", userName);
+            // 모니터를 수행하는 것은 Service 로 구현
+            // Service 를 EncounterMonitor 라는 이름의 클래스로 구현하고 startService 로 이 Service 를 시작
+            // 위에서 모니터링 등록을 한 BT 디바이스 이름을 intent 에 담아서 전달
 
-            startService(intent);
+            if(registered) {
+                Intent intent = new Intent(this, EncounterMonitor.class);
+                intent.putExtra("BTName", btName);
+                intent.putExtra("UserName", userName);
+
+                startService(intent);
+            }
+            else
+                Toast.makeText(this, "장치명과 사용자명이 등록되지 않았습니다다.", Toast.LENGTH_LONG).show();
+
         } else if(view.getId() == R.id.stopMonitorBtn) {
             stopService(new Intent(this, EncounterMonitor.class));
         }
@@ -146,25 +172,4 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(discoverIntent, REQUEST_ENABLE_DISCOVER);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }
