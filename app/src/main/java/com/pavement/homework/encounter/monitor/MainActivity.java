@@ -23,13 +23,15 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    static final public String UI_UPDATE = "com.pavement.homework.encounter.monitor.ui.update";
-    static final public String UI_UPDATE_CONTENT = "com.pavement.homework.encounter.monitor.ui.update.content";
+    static final String PACKAGE_NAME = "com.pavement.homework.encounter.monitor";
+    static final String UI_UPDATE = "com.pavement.homework.encounter.monitor.ui.update";
+    static final String UI_UPDATE_CONTENT = "com.pavement.homework.encounter.monitor.ui.update.content";
+    static final int REQUEST_ENABLE_BT = 1;
+    static final int REQUEST_ENABLE_DISCOVER = 2;
+    static final String TAG = "EncounterMonitor";
 
     BroadcastReceiver receiver;
     BluetoothAdapter mBTAdapter;
-    static final int REQUEST_ENABLE_BT = 1;
-    static final int REQUEST_ENABLE_DISCOVER = 2;
     ListView listViewEncounters;
     ArrayList<String> listEncounters;
     ArrayAdapter<String> adapterEncounters;
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 활성화 상태
                 // 스캔을 하거나 연결을 할 수 있음
-                Log.d("TEST", "블루투스 활성화");
+                Log.d(TAG, "블루투스 활성화");
             }
         }
     }
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_ENABLE_BT:
                 if (responseCode == RESULT_OK) {
                     // 사용자가 활성화 상태로 변경하는 것을 허용하였음
-                    Log.d("TEST", "블루투스 허용");
+                    Log.d(TAG, "블루투스 허용");
                 } else if (responseCode == RESULT_CANCELED) {
                     // 사용자가 활성화 상태로 변경하는 것을 허용하지 않음
                     // 블루투스를 사용할 수 없으므로 애플리케이션 종료
@@ -193,18 +195,18 @@ public class MainActivity extends AppCompatActivity {
     //자바 코드 상에서는 FileProvider 를 이용해 해당 원하는 파일의 Uri 를 받아오고 해당 Uri 에 관해서 외부에서 이용할 수 있도록
     //grantUriPermission 함수를 이용해 실행하려는 외부 앱에 권한을 준다.
     public void onClickShare(View view) {
-        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
         File file = getFileStreamPath("encounter.txt");
         //File file = new File(getExternalFilesDir(null), "encounter.txt");
         if (file.exists()) {
             File newFile = new File(getFilesDir(), "encounter.txt");
-            Uri contentUri = FileProvider.getUriForFile(MainActivity.this, "com.pavement.homework.encounter.monitor", newFile);
-            grantUriPermission("com.pavement.homework.encounter.monitor", contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            emailIntent.setType("text/*");
-            emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-            Log.d("TEST", "URI: " + contentUri);
-            startActivity(Intent.createChooser(emailIntent, "파일 공유하기"));
+            Uri contentUri = FileProvider.getUriForFile(MainActivity.this, PACKAGE_NAME, newFile);
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            sharingIntent.setType("text/txt");
+
+            Log.d(TAG, "URI: " + contentUri);
+            startActivity(Intent.createChooser(sharingIntent, "파일 공유하기"));
         }
     }
 }

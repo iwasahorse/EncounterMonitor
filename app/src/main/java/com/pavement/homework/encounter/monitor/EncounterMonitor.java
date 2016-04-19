@@ -71,7 +71,7 @@ public class EncounterMonitor extends Service {
 
                         lostDate = new Date();
                         output = formatter.format(lostDate);
-                        Log.d("TEST", "Encounter 종료 시점: " + output);  //Encounter 종료 시점
+                        Log.d(TAG, "Encounter 종료 시점: " + output);  //Encounter 종료 시점
                         
                         //Encounter 시작 시점과 종료 시점 간의 시간차를 분으로 환산
                         differences = lostDate.getTime() - foundDate.getTime() ;
@@ -113,7 +113,7 @@ public class EncounterMonitor extends Service {
                         if(foundDate == null) {
                             foundDate = new Date();
                             output = formatter.format(foundDate);
-                            Log.d("TEST", "Encounter 시작 시점 " + output);  //Encounter 시작 시점String message = formatter.format(foundDate) + " (" + minutes + "분)";
+                            Log.d(TAG, "Encounter 시작 시점 " + output);  //Encounter 시작 시점String message = formatter.format(foundDate) + " (" + minutes + "분)";
 
                         }
                                 vib.vibrate(200);
@@ -135,7 +135,7 @@ public class EncounterMonitor extends Service {
         Log.d(TAG, "onCreate()");
 
         try {
-            Log.d("TEST", "외부: " + getExternalFilesDir(null) + ", 내부: " + getFilesDir());
+            Log.d(TAG, "외부: " + getExternalFilesDir(null) + ", 내부: " + getFilesDir());
             outputStream = openFileOutput(filename, Context.MODE_PRIVATE);  //파일 생성
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,7 +215,7 @@ public class EncounterMonitor extends Service {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.KOREA);
         Date startDate = new Date();
         output = "모니터링 시작: " + formatter.format(startDate);
-        Log.d("TEST", output);  //모니터링 시작 시간
+        Log.d(TAG, output);  //모니터링 시작 시간
         //모니터링 시작 시간을 액티비티로 전달하기 위한 방송
         intentUI.putExtra(UI_UPDATE_CONTENT, output);
         broadcastManager.sendBroadcast(intentUI);
@@ -253,7 +253,7 @@ public class EncounterMonitor extends Service {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.KOREA);
         Date stopDate = new Date();
         output = "모니터링 종료: " + formatter.format(stopDate);
-        Log.d("TEST", output);  //모니터링 종료 시간
+        Log.d(TAG, output);  //모니터링 종료 시간
         // 모니터링 종료 시간을 액티비티로 전달하기 위한 방송
         intentUI.putExtra(UI_UPDATE_CONTENT, output);
         broadcastManager.sendBroadcast(intentUI);
@@ -275,6 +275,5 @@ public class EncounterMonitor extends Service {
         //블루투스 장치 탐색을 중단한다
         if(mBTAdapter != null && mBTAdapter.isDiscovering())
             mBTAdapter.cancelDiscovery();
-
     }
 }

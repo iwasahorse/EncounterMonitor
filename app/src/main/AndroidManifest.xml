@@ -25,7 +25,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.OPENABLE" />
 
-                <data android:mimeType="*/*" />
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 
