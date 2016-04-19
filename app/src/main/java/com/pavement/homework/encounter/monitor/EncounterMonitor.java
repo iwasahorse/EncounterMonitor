@@ -14,7 +14,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -139,15 +138,8 @@ public class EncounterMonitor extends Service {
         Log.d(TAG, "onCreate()");
 
         try {
-            //Log.i("TEST", getFilesDir().toString() );
-           // File file = getFileStreamPath("encounter.txt");
-            File file = new File(getExternalFilesDir(null), "encounter.txt");
-            Log.d("TEST", file.getAbsolutePath());
-            /*if(file.exists() && file.delete())
-                Log.d("TEST", "파일 삭제 성공");*/
-
-            outputStream = new FileOutputStream(file);
-            //outputStream = openFileOutput(filename, Context.MODE_PRIVATE);  //파일 생성
+            Log.d("TEST", "외부: " + getExternalFilesDir(null) + ", 내부: " + getFilesDir());
+            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);  //파일 생성
         } catch (Exception e) {
             e.printStackTrace();
         }

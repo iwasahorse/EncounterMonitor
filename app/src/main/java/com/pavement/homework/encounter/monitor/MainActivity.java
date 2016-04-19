@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.support.v4.content.FileProvider;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,7 +19,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
                 adapterEncounters.add(stringEncounter);
                 adapterEncounters.notifyDataSetChanged();
             }
-
 
         };
 
@@ -105,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 활성화 상태
                 // 스캔을 하거나 연결을 할 수 있음
+
             }
         }
     }
@@ -189,24 +189,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickShare(View view) {
         Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-        //emailIntent.setType("text/*");
-//        MainActivity.this.revokeUriPermission(Uri.fromFile(getFileStreamPath("encounter.txt")), Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//        MainActivity.this.grantUriPermission("com.pavement.homework.encounter.monitor", Uri.fromFile(getFileStreamPath("encounter.txt")), Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-        /*emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"me@gmail.com"});
-        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
-                "Test Subject");
-        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
-                "go on read the emails");*/
-
-       // File file = getFileStreamPath("encounter.txt");
-        File file = new File(getExternalFilesDir(null), "encounter.txt");
+        File file = getFileStreamPath("encounter.txt");
+        //File file = new File(getExternalFilesDir(null), "encounter.txt");
         if (file.exists()) {
-            Uri fileUri = Uri.fromFile(file);
+
+            File newFile = new File(getFilesDir(), "encounter.txt");
+            Uri contentUri = FileProvider.getUriForFile(MainActivity.this, "com.pavement.homework.encounter.monitor", newFile);
+            grantUriPermission("com.pavement.homework.encounter.monitor", contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             emailIntent.setType("text/*");
-            emailIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            emailIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            Log.d("TEST", "URI: " + contentUri);
             startActivity(Intent.createChooser(emailIntent, "Send mail..."));
         }
     }
