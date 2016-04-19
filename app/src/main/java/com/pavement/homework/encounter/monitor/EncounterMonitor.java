@@ -14,6 +14,9 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,23 +29,22 @@ public class EncounterMonitor extends Service {
     private static final String TAG = "EncounterMonitor";
     static final public String UI_UPDATE = "com.pavement.homework.encounter.monitor.ui.update";
     static final public String UI_UPDATE_CONTENT = "com.pavement.homework.encounter.monitor.ui.update.content";
+    static final String filename = "encounter.txt";
 
+    FileOutputStream outputStream;
     LocalBroadcastManager broadcastManager;
     Intent intentUI;
-
     PowerManager.WakeLock wakeLock;
     BluetoothAdapter mBTAdapter;
+    Vibrator vib;
     String btName;
     String userName;
     ArrayList<String> listDevices;
     Date foundDate;
     Date lostDate;
     boolean isEncountering = false;
-
     Timer timer = new Timer();
     TimerTask timerTask = null;
-
-    Vibrator vib;
 
     // BT 검색과 관련한 broadcast 를 받을 BroadcastReceiver 객체 정의
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -84,7 +86,13 @@ public class EncounterMonitor extends Service {
                         intentUI.putExtra(UI_UPDATE_CONTENT, message);
                         broadcastManager.sendBroadcast(intentUI);
 
-                        //
+                        //파일에 모니터링 내용 쓰기
+                        try {
+                            outputStream.write(message.getBytes());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                         lostDate = null;
                         foundDate = null;
                     }
@@ -109,7 +117,6 @@ public class EncounterMonitor extends Service {
                             output = formatter.format(foundDate);
                             Log.i("TEST", "Encounter 시작 시점 " + output);  //Encounter 시작 시점String message = formatter.format(foundDate) + " (" + minutes + "분)";
 
-
                         }
 
                                 vib.vibrate(200);
@@ -130,6 +137,20 @@ public class EncounterMonitor extends Service {
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate()");
+
+        try {
+            //Log.i("TEST", getFilesDir().toString() );
+           // File file = getFileStreamPath("encounter.txt");
+            File file = new File(getExternalFilesDir(null), "encounter.txt");
+            Log.d("TEST", file.getAbsolutePath());
+            /*if(file.exists() && file.delete())
+                Log.d("TEST", "파일 삭제 성공");*/
+
+            outputStream = new FileOutputStream(file);
+            //outputStream = openFileOutput(filename, Context.MODE_PRIVATE);  //파일 생성
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         broadcastManager = LocalBroadcastManager.getInstance(EncounterMonitor.this);
         intentUI = new Intent(UI_UPDATE);
@@ -192,17 +213,30 @@ public class EncounterMonitor extends Service {
 
         stopTimerTask();
         unregisterReceiver(mReceiver);
+
+        try {
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void startTimerTask() {
         String output;
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.KOREA);
         Date startDate = new Date();
-        output = formatter.format(startDate);
+        output = "모니터링 시작: " + formatter.format(startDate);
         Log.i("TEST", output);  //모니터링 시작 시간
         //모니터링 시작 시간을 액티비티로 전달하기 위한 방송
-        intentUI.putExtra(UI_UPDATE_CONTENT, "모니터링 시작: " + output);
+        intentUI.putExtra(UI_UPDATE_CONTENT, output);
         broadcastManager.sendBroadcast(intentUI);
+
+        //파일에 모니터링 내용 쓰기
+        try {
+            outputStream.write(output.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // TimerTask 생성한다
         timerTask = new TimerTask() {
@@ -228,11 +262,18 @@ public class EncounterMonitor extends Service {
         String output;
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.KOREA);
         Date stopDate = new Date();
-        output = formatter.format(stopDate);
+        output = "모니터링 종료: " + formatter.format(stopDate);
         Log.i("TEST", output);  //모니터링 종료 시간
         // 모니터링 종료 시간을 액티비티로 전달하기 위한 방송
-        intentUI.putExtra(UI_UPDATE_CONTENT, "모니터링 종료: " + output);
+        intentUI.putExtra(UI_UPDATE_CONTENT, output);
         broadcastManager.sendBroadcast(intentUI);
+
+        //파일에 모니터링 내용 쓰기
+        try {
+            outputStream.write(output.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // 1. 모든 태스크를 중단한다
         if(timerTask != null) {
