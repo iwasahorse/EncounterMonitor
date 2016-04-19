@@ -176,7 +176,6 @@ public class EncounterMonitor extends Service {
         Toast.makeText(this, "EncounterMonitor 시작", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "onStartCommand()");
 
-
         if(intent != null) {
             // MainActivity 에서 Service 를 시작할 때 사용한 intent 에 담겨진 BT 디바이스와 사용자 이름 얻음
             btName = intent.getStringExtra("BTName");
