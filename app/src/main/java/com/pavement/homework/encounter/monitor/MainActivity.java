@@ -67,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, listEncounters);
         listViewEncounters.setAdapter(adapterEncounters);
 
-
         // Bluetooth Adapter 얻기 ========================//
         // 1. BluetoothManager 통해서
         //mBTManager = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 활성화 상태
                 // 스캔을 하거나 연결을 할 수 있음
-
+                Log.d("TEST", "블루투스 활성화");
             }
         }
     }
@@ -131,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_ENABLE_BT:
                 if (responseCode == RESULT_OK) {
                     // 사용자가 활성화 상태로 변경하는 것을 허용하였음
+                    Log.d("TEST", "블루투스 허용");
                 } else if (responseCode == RESULT_CANCELED) {
                     // 사용자가 활성화 상태로 변경하는 것을 허용하지 않음
                     // 블루투스를 사용할 수 없으므로 애플리케이션 종료
@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View view) {
         if (view.getId() == R.id.regiBtn) {
             // EditText 에 입력된 디바이스와 사용자 이름을 String 변수에 담음
-
             btName = bt.getText().toString();
             userName = user.getText().toString();
 
@@ -187,12 +186,17 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(discoverIntent, REQUEST_ENABLE_DISCOVER);
     }
 
+    //로그 파일 공유 버튼을 누르면 공유하기 기능을 이용해 encounter.txt 파일을 공유한다.
+    //내부저장소에 저장한 앱의 데이터를 외부 앱에서 이용하기 때문에 권한 문제가 있다.
+    //FileProvider 를 이용해 이를 해결한다.
+    //manifest 파일에서 관련 설정을 해주고 res/xml 디렉토리에 provider 가 이용할 경로 설정이 담긴 파일을 둔다.
+    //자바 코드 상에서는 FileProvider 를 이용해 해당 원하는 파일의 Uri 를 받아오고 해당 Uri 에 관해서 외부에서 이용할 수 있도록
+    //grantUriPermission 함수를 이용해 실행하려는 외부 앱에 권한을 준다.
     public void onClickShare(View view) {
         Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
         File file = getFileStreamPath("encounter.txt");
         //File file = new File(getExternalFilesDir(null), "encounter.txt");
         if (file.exists()) {
-
             File newFile = new File(getFilesDir(), "encounter.txt");
             Uri contentUri = FileProvider.getUriForFile(MainActivity.this, "com.pavement.homework.encounter.monitor", newFile);
             grantUriPermission("com.pavement.homework.encounter.monitor", contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -200,8 +204,7 @@ public class MainActivity extends AppCompatActivity {
             emailIntent.setType("text/*");
             emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
             Log.d("TEST", "URI: " + contentUri);
-            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+            startActivity(Intent.createChooser(emailIntent, "파일 공유하기"));
         }
     }
-
 }
